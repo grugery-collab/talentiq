@@ -1,0 +1,12 @@
+{
+  "name": "talentiq",
+  "version": "1.0.0",
+  "description": "Plataforma de recrutamento com IA — powered by Anthropic Claude",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
