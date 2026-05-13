@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TalentIQ — Plataforma de Recrutamento com IA</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/dist/tabler-icons.min.css">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8f6;
+  --bg-tertiary: #f0efe8;
+  --bg-info: #e6f1fb;
+  --bg-success: #eaf3de;
+  --bg-warning: #faeeda;
+  --bg-danger: #fcebeb;
+  --text-primary: #1a1a18;
+  --text-secondary: #5f5e5a;
+  --text-tertiary: #888780;
+  --text-info: #185fa5;
+  --text-success: #3b6d11;
+  --text-warning: #ba7517;
+  --text-danger: #a32d2d;
+  --border-tertiary: rgba(26,26,24,0.12);
+  --border-secondary: rgba(26,26,24,0.22);
+  --border-primary: rgba(26,26,24,0.35);
+  --border-info: #378add;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1e1e1c;
+    --bg-secondary: #2a2a28;
+    --bg-tertiary: #141412;
+    --bg-info: #042c53;
+    --bg-success: #173404;
+    --bg-warning: #412402;
+    --bg-danger: #501313;
+    --text-primary: #f0efe8;
+    --text-secondary: #b4b2a9;
+    --text-tertiary: #888780;
+    --text-info: #85b7eb;
+    --text-success: #97c459;
+    --text-warning: #ef9f27;
+    --text-danger: #f09595;
+    --border-tertiary: rgba(240,239,232,0.1);
+    --border-secondary: rgba(240,239,232,0.2);
+    --border-primary: rgba(240,239,232,0.32);
+  }
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app { display: flex; height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  background: var(--bg-primary);
+  border-right: 0.5px solid var(--border-tertiary);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 16px;
+  border-bottom: 0.5px solid var(--border-tertiary);
+}
+.sidebar-header h1 { font-size: 15px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.sidebar-header p { font-size: 11px; color: var(--text-secondary); margin-top: 3px; }
+
+.sidebar-section { padding: 12px 8px; }
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  padding: 0 8px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.project-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: background 0.15s;
+  user-select: none;
+}
+.project-item:hover { background: var(--bg-secondary); }
+.project-item.active { background: var(--bg-info); color: var(--text-info); }
+.project-item span.label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-count {
+  font-size: 10px;
+  background: var(--bg-secondary);
+  padding: 1px 6px;
+  border-radius: 10px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.project-item.active .project-count { background: rgba(255,255,255,0.2); color: var(--text-info); }
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.add-btn:hover { background: var(--bg-secondary); color: var(--text-secondary); }
+
+/* MAIN */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+.topbar {
+  background: var(--bg-primary);
+  border-bottom: 0.5px solid var(--border-tertiary);
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 4px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 0 14px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tab:hover { color: var(--text-primary); }
+.tab.active { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+.tab i { font-size: 14px; }
+
+.content { flex: 1; overflow-y: auto; padding: 20px; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* COMPONENTS */
+.section-card {
+  background: var(--bg-primary);
+  border: 0.5px solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+textarea, input[type="text"], input[type="email"] {
+  width: 100%;
+  border: 0.5px solid var(--border-secondary);
+  border-radius: var(--radius-md);
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  resize: vertical;
+  transition: border-color 0.15s;
+  line-height: 1.6;
+}
+textarea:focus, input:focus { outline: none; border-color: var(--border-primary); }
+textarea { min-height: 100px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  cursor: pointer;
+  border: 0.5px solid var(--border-secondary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.btn:hover { background: var(--bg-secondary); }
+.btn.primary {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  border-color: var(--text-primary);
+}
+.btn.primary:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+.ai-result {
+  background: var(--bg-secondary);
+  border: 0.5px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  color: var(--text-primary);
+}
+.ai-result.muted { color: var(--text-tertiary); font-style: italic; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge.success { background: var(--bg-success); color: var(--text-success); }
+.badge.danger { background: var(--bg-danger); color: var(--text-danger); }
+.badge.info { background: var(--bg-info); color: var(--text-info); }
+.badge.warning { background: var(--bg-warning); color: var(--text-warning); }
+
+/* CANDIDATES */
+.candidate-layout { display: grid; grid-template-columns: 200px 1fr; gap: 16px; }
+.candidate-list { display: flex; flex-direction: column; gap: 6px; }
+.cand-card {
+  padding: 10px;
+  border: 0.5px solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--bg-primary);
+  transition: all 0.15s;
+}
+.cand-card:hover { border-color: var(--border-secondary); }
+.cand-card.active { border-color: var(--border-info); background: var(--bg-info); }
+.cand-name { font-size: 13px; font-weight: 500; }
+.cand-role { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+/* NEWS */
+.news-grid { display: grid; gap: 10px; }
+.news-card { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-md); padding: 14px; }
+.news-title { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.news-meta { font-size: 11px; color: var(--text-tertiary); }
+.news-body { font-size: 12px; color: var(--text-secondary); margin-top: 6px; line-height: 1.65; }
+
+/* COMPANIES */
+.co-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.co-card { background: var(--bg-primary); border: 0.5px solid var(--border-tertiary); border-radius: var(--radius-md); padding: 12px; }
+.co-name { font-size: 13px; font-weight: 500; }
+.co-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* SCORE BAR */
+.score-bar { height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden; margin-top: 6px; }
+.score-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+/* AVATAR */
+.avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--bg-info);
+  color: var(--text-info);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 500;
+  flex-shrink: 0;
+}
+
+/* MODAL */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--border-secondary);
+  padding: 22px;
+  width: 360px;
+  max-width: 95vw;
+}
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 14px; }
+.modal input { margin-bottom: 10px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: var(--text-tertiary); font-size: 13px; }
+.empty-state i { font-size: 28px; display: block; margin-bottom: 8px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 13px; height: 13px; border: 2px solid var(--border-secondary); border-top-color: var(--text-primary); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1><i class="ti ti-briefcase" style="font-size:18px"></i> TalentIQ</h1>
+      <p>Recrutamento inteligente com IA</p>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Projetos</div>
+      <div id="projectList"></div>
+      <button class="add-btn" onclick="openModal('projectModal')">
+        <i class="ti ti-plus"></i> Novo projeto
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tab active" id="tab-jd" onclick="switchTab('jd')"><i class="ti ti-file-text"></i> Vaga</div>
+      <div class="tab" id="tab-news" onclick="switchTab('news')"><i class="ti ti-news"></i> Mercado</div>
+      <div class="tab" id="tab-companies" onclick="switchTab('companies')"><i class="ti ti-building"></i> Empresas</div>
+      <div class="tab" id="tab-candidates" onclick="switchTab('candidates')"><i class="ti ti-users"></i> Candidatos</div>
+    </div>
+
+    <div class="content">
+
+      <!-- JD PANEL -->
+      <div class="panel active" id="panel-jd">
+        <div class="section-card">
+          <div class="section-title"><i class="ti ti-file-description"></i> Job Description</div>
+          <textarea id="jdInput" placeholder="Cole aqui o job description completo da vaga..." style="min-height:200px"></textarea>
+          <div class="btn-row">
+            <button class="btn primary" onclick="analyzeJD()"><i class="ti ti-sparkles"></i> Analisar com IA</button>
+            <button class="btn" onclick="saveJD()"><i class="ti ti-device-floppy"></i> Salvar</button>
+          </div>
+        </div>
+        <div class="section-card" id="jdAnalysisCard" style="display:none">
+          <div class="section-title"><i class="ti ti-brain"></i> Análise da posição</div>
+          <div class="ai-result" id="jdAnalysisResult"></div>
+        </div>
+      </div>
+
+      <!-- NEWS PANEL -->
+      <div class="panel" id="panel-news">
+        <div class="section-card">
+          <div class="section-title"><i class="ti ti-search"></i> Notícias e tendências do segmento</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="text" id="newsQuery" placeholder="Ex: tecnologia SaaS, mercado de saúde digital..." style="flex:1;min-width:180px">
+            <button class="btn primary" onclick="searchNews()"><i class="ti ti-refresh"></i> Buscar</button>
+            <button class="btn" onclick="autoFill('news')" title="Preencher a partir do JD"><i class="ti ti-wand"></i> Do JD</button>
+          </div>
+        </div>
+        <div id="newsResults" class="news-grid"></div>
+      </div>
+
+      <!-- COMPANIES PANEL -->
+      <div class="panel" id="panel-companies">
+        <div class="section-card">
+          <div class="section-title"><i class="ti ti-building-community"></i> Mapeamento de empresas do setor</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <input type="text" id="companyQuery" placeholder="Ex: fintechs de pagamento, SaaS B2B..." style="flex:1;min-width:180px">
+            <button class="btn primary" onclick="searchCompanies()"><i class="ti ti-map"></i> Mapear</button>
+            <button class="btn" onclick="autoFill('companies')"><i class="ti ti-wand"></i> Do JD</button>
+          </div>
+        </div>
+        <div id="companyResults"></div>
+      </div>
+
+      <!-- CANDIDATES PANEL -->
+      <div class="panel" id="panel-candidates">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+          <span style="font-size:14px;font-weight:500;flex:1">Candidatos do projeto</span>
+          <button class="btn primary" onclick="openModal('candidateModal')"><i class="ti ti-user-plus"></i> Adicionar candidato</button>
+        </div>
+        <div class="candidate-layout">
+          <div id="candidateList" class="candidate-list"></div>
+          <div id="candidateDetail">
+            <div class="empty-state"><i class="ti ti-user"></i>Selecione um candidato</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-backdrop" id="projectModal">
+  <div class="modal">
+    <h3>Novo projeto de recrutamento</h3>
+    <input type="text" id="pName" placeholder="Nome do projeto (ex: CTO — Startup Fintech)">
+    <input type="text" id="pRole" placeholder="Cargo principal">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('projectModal')">Cancelar</button>
+      <button class="btn primary" onclick="createProject()">Criar projeto</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="candidateModal">
+  <div class="modal">
+    <h3>Adicionar candidato</h3>
+    <input type="text" id="cName" placeholder="Nome completo">
+    <input type="text" id="cRole" placeholder="Cargo atual">
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('candidateModal')">Cancelar</button>
+      <button class="btn primary" onclick="createCandidate()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_ENDPOINT = '/api/claude';
+const STORAGE_KEY = 'talentiq_v1';
+
+let state = { projects: [], activeProjectId: null, activeCandidateId: null };
+
+// ── PERSISTENCE ─────────────────────────────────────────────────────────────
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) state = JSON.parse(raw);
+  } catch(e) {}
+  if (!Array.isArray(state.projects)) state.projects = [];
+  renderProjects();
+  if (state.activeProjectId) selectProject(state.activeProjectId, false);
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ── HELPERS ─────────────────────────────────────────────────────────────────
+function getProject(id) { return state.projects.find(p => p.id === (id || state.activeProjectId)); }
+function getCandidate(cid) {
+  const p = getProject();
+  return p && p.candidates.find(c => c.id === (cid || state.activeCandidateId));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+// ── AI ───────────────────────────────────────────────────────────────────────
+async function claudeCall(prompt, maxTokens = 1000) {
+  const res = await fetch(API_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message || data.error);
+  return (data.content || []).map(b => b.text || '').join('');
+}
+
+async function streamToEl(el, prompt, maxTokens = 1000) {
+  el.className = 'ai-result muted';
+  el.textContent = 'Analisando';
+  let dots = 0;
+  const t = setInterval(() => { el.textContent = 'Analisando' + '.'.repeat((++dots % 3) + 1); }, 400);
+  try {
+    const text = await claudeCall(prompt, maxTokens);
+    clearInterval(t);
+    el.className = 'ai-result';
+    el.textContent = text;
+    return text;
+  } catch(e) {
+    clearInterval(t);
+    el.className = 'ai-result muted';
+    el.textContent = 'Erro: ' + e.message;
+    return null;
+  }
+}
+
+// ── UI UTILS ─────────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  const first = document.getElementById(id).querySelector('input');
+  if (first) setTimeout(() => first.focus(), 60);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(m => m.classList.remove('open'));
+});
+
+// ── PROJECTS ─────────────────────────────────────────────────────────────────
+function renderProjects() {
+  const el = document.getElementById('projectList');
+  el.innerHTML = '';
+  state.projects.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'project-item' + (p.id === state.activeProjectId ? ' active' : '');
+    div.innerHTML = `<i class="ti ti-briefcase" style="font-size:14px;flex-shrink:0"></i><span class="label">${p.name}</span><span class="project-count">${(p.candidates||[]).length}</span>`;
+    div.onclick = () => selectProject(p.id);
+    el.appendChild(div);
+  });
+}
+
+function selectProject(id, save = true) {
+  state.activeProjectId = id;
+  state.activeCandidateId = null;
+  renderProjects();
+  const p = getProject(id);
+  if (!p) return;
+  // restore JD tab
+  document.getElementById('jdInput').value = p.jd || '';
+  const card = document.getElementById('jdAnalysisCard');
+  if (p.jdAnalysis) {
+    card.style.display = '';
+    document.getElementById('jdAnalysisResult').textContent = p.jdAnalysis;
+  } else {
+    card.style.display = 'none';
+  }
+  renderCandidateList();
+  document.getElementById('candidateDetail').innerHTML = '<div class="empty-state"><i class="ti ti-user"></i>Selecione um candidato</div>';
+  if (save) saveState();
+}
+
+function createProject() {
+  const name = document.getElementById('pName').value.trim();
+  if (!name) return;
+  const p = { id: uid(), name, role: document.getElementById('pRole').value.trim(), jd: '', jdAnalysis: '', candidates: [] };
+  state.projects.push(p);
+  closeModal('projectModal');
+  saveState();
+  selectProject(p.id);
+}
+
+// ── JD ───────────────────────────────────────────────────────────────────────
+function saveJD() {
+  const p = getProject();
+  if (!p) return alert('Selecione um projeto primeiro.');
+  p.jd = document.getElementById('jdInput').value;
+  saveState();
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check"></i> Salvo';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+async function analyzeJD() {
+  const p = getProject();
+  if (!p) return alert('Selecione um projeto primeiro.');
+  const jd = document.getElementById('jdInput').value.trim();
+  if (!jd) return alert('Cole o Job Description antes de analisar.');
+  p.jd = jd;
+  document.getElementById('jdAnalysisCard').style.display = '';
+  const el = document.getElementById('jdAnalysisResult');
+  const prompt = `Você é um especialista sênior em recrutamento e recursos humanos. Analise detalhadamente o Job Description abaixo e extraia o máximo de informações relevantes:\n\n${jd}\n\nForneça uma análise estruturada com:\n1. Cargo e nível de senioridade\n2. Competências técnicas obrigatórias e diferenciais\n3. Competências comportamentais esperadas\n4. Responsabilidades principais\n5. Perfil ideal do candidato\n6. Setor/segmento e contexto da empresa\n7. Diferenciais que destacariam um candidato\n8. Red flags a observar durante a seleção\n9. Faixa salarial provável (se inferível) e tipo de contrato\n\nSeja preciso, detalhado e útil para um recrutador.`;
+  const text = await streamToEl(el, prompt, 1200);
+  if (text) { p.jdAnalysis = text; saveState(); }
+}
+
+// ── MARKET NEWS ───────────────────────────────────────────────────────────────
+async function searchNews() {
+  const q = document.getElementById('newsQuery').value.trim();
+  if (!q) return alert('Digite o segmento para buscar.');
+  const container = document.getElementById('newsResults');
+  container.innerHTML = '<div class="news-card"><div class="news-body" style="color:var(--text-tertiary);font-style:italic">Buscando notícias e tendências com IA...</div></div>';
+  const prompt = `Você é um analista de mercado. Gere um resumo de 5 notícias/tendências recentes e relevantes sobre o segmento: "${q}". Para cada uma inclua: título impactante, fonte plausível com data aproximada (2024-2025) e um parágrafo de 3 linhas com o conteúdo relevante para recrutadores. Formate como JSON com array "news" contendo objetos {title, source, date, body}. Responda APENAS com JSON válido, sem markdown.`;
+  try {
+    const text = await claudeCall(prompt, 1200);
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    container.innerHTML = '';
+    (parsed.news || []).forEach(n => {
+      const d = document.createElement('div');
+      d.className = 'news-card';
+      d.innerHTML = `<div class="news-title">${n.title}</div><div class="news-meta"><i class="ti ti-calendar" style="font-size:11px"></i> ${n.source} · ${n.date}</div><div class="news-body">${n.body}</div>`;
+      container.appendChild(d);
+    });
+  } catch(e) {
+    container.innerHTML = '<div class="news-card"><div class="news-body">Erro ao buscar notícias. Tente novamente.</div></div>';
+  }
+}
+
+// ── COMPANIES ────────────────────────────────────────────────────────────────
+async function searchCompanies() {
+  const q = document.getElementById('companyQuery').value.trim();
+  if (!q) return alert('Descreva o setor para mapear empresas.');
+  const container = document.getElementById('companyResults');
+  container.innerHTML = '<div class="section-card" style="color:var(--text-tertiary);font-size:13px;font-style:italic">Mapeando empresas com IA...</div>';
+  const prompt = `Você é um analista de mercado e headhunter. Liste 8 empresas representativas do segmento: "${q}". Inclua startups, PMEs e grandes empresas. Para cada uma: nome, porte (Startup / PME / Grande porte), sede (cidade/país), atividade principal em 1 linha. Formate como JSON com array "companies" contendo {name, size, location, description}. Responda APENAS com JSON válido.`;
+  try {
+    const text = await claudeCall(prompt, 1000);
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const sizeColor = { 'Startup': 'info', 'PME': 'warning', 'Grande porte': 'success' };
+    const grid = document.createElement('div');
+    grid.className = 'co-grid';
+    (parsed.companies || []).forEach(c => {
+      const color = sizeColor[c.size] || 'info';
+      const d = document.createElement('div');
+      d.className = 'co-card';
+      d.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span class="co-name">${c.name}</span><span class="badge ${color}" style="font-size:10px">${c.size}</span></div><div class="co-detail"><i class="ti ti-map-pin" style="font-size:12px"></i> ${c.location}</div><div class="co-detail" style="margin-top:4px">${c.description}</div>`;
+      grid.appendChild(d);
+    });
+    const wrap = document.createElement('div');
+    wrap.className = 'section-card';
+    wrap.appendChild(grid);
+    container.innerHTML = '';
+    container.appendChild(wrap);
+  } catch(e) {
+    container.innerHTML = '<div class="section-card" style="font-size:13px">Erro ao mapear empresas.</div>';
+  }
+}
+
+function autoFill(target) {
+  const p = getProject();
+  if (!p || !p.jd) return alert('Adicione e salve um JD antes.');
+  const words = p.jd.match(/\b[A-Za-záéíóúÁÉÍÓÚàèìòùâêîôûãõ]{5,}\b/g) || [];
+  const top = [...new Set(words)].slice(0, 6).join(' ');
+  if (target === 'news') document.getElementById('newsQuery').value = p.role || top;
+  else document.getElementById('companyQuery').value = p.role || top;
+}
+
+// ── CANDIDATES ───────────────────────────────────────────────────────────────
+function renderCandidateList() {
+  const p = getProject();
+  const el = document.getElementById('candidateList');
+  el.innerHTML = '';
+  if (!p || !(p.candidates || []).length) {
+    el.innerHTML = '<div class="empty-state" style="padding:24px 0"><i class="ti ti-users" style="font-size:22px"></i>Nenhum candidato</div>';
+    return;
+  }
+  p.candidates.forEach(c => {
+    const sm = { pending: ['warning', 'Em análise'], approved: ['success', 'Aprovado'], rejected: ['danger', 'Reprovado'] };
+    const [sc, sl] = sm[c.status || 'pending'];
+    const d = document.createElement('div');
+    d.className = 'cand-card' + (c.id === state.activeCandidateId ? ' active' : '');
+    d.innerHTML = `<div class="cand-name">${c.name}</div><div class="cand-role">${c.role || ''}</div><div style="margin-top:6px"><span class="badge ${sc}">${sl}</span>${c.matchScore !== undefined ? `<span style="font-size:11px;color:var(--text-tertiary);margin-left:6px">${c.matchScore}%</span>` : ''}</div>`;
+    d.onclick = () => selectCandidate(c.id);
+    el.appendChild(d);
+  });
+}
+
+function createCandidate() {
+  if (!state.activeProjectId) return alert('Selecione um projeto primeiro.');
+  const name = document.getElementById('cName').value.trim();
+  if (!name) return;
+  const p = getProject();
+  const c = { id: uid(), name, role: document.getElementById('cRole').value.trim(), cv: '', notes: '', opinion: '', status: 'pending' };
+  p.candidates.push(c);
+  closeModal('candidateModal');
+  saveState();
+  renderCandidateList();
+  selectCandidate(c.id);
+}
+
+function selectCandidate(cid) {
+  state.activeCandidateId = cid;
+  renderCandidateList();
+  renderCandidateDetail();
+}
+
+function renderCandidateDetail() {
+  const c = getCandidate();
+  const p = getProject();
+  if (!c) return;
+  const matchColor = c.matchScore >= 70 ? 'var(--text-success)' : c.matchScore >= 50 ? 'var(--text-warning)' : c.matchScore !== undefined ? 'var(--text-danger)' : 'var(--text-tertiary)';
+  const det = document.getElementById('candidateDetail');
+  det.innerHTML = `
+  <div class="section-card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:${c.matchScore !== undefined ? '10px' : '0'}">
+      <div class="avatar">${initials(c.name)}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:500">${c.name}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${c.role||'—'}</div>
+      </div>
+      ${c.matchScore !== undefined ? `<div style="text-align:right"><div style="font-size:22px;font-weight:500;color:${matchColor}">${c.matchScore}%</div><div style="font-size:10px;color:var(--text-tertiary)">compatibilidade</div></div>` : ''}
+    </div>
+    ${c.matchScore !== undefined ? `<div class="score-bar"><div class="score-fill" style="width:${c.matchScore}%;background:${matchColor}"></div></div>` : ''}
+  </div>
+
+  <div class="section-card" style="margin-bottom:12px">
+    <div class="section-title"><i class="ti ti-file-cv"></i> Currículo (CV)</div>
+    <textarea id="cvInput" placeholder="Cole aqui o currículo completo do candidato...">${c.cv||''}</textarea>
+    <div class="btn-row">
+      <button class="btn primary" onclick="analyzeCV()"><i class="ti ti-sparkles"></i> Analisar compatibilidade</button>
+      <button class="btn" onclick="saveField('cv')"><i class="ti ti-device-floppy"></i> Salvar CV</button>
+    </div>
+    ${c.cvAnalysis ? `<div style="margin-top:12px" class="ai-result">${c.cvAnalysis}</div>` : ''}
+  </div>
+
+  <div class="section-card" style="margin-bottom:12px">
+    <div class="section-title"><i class="ti ti-notes"></i> Anotações da entrevista</div>
+    <textarea id="notesInput" placeholder="Anote observações, respostas, comportamento, impressões gerais durante ou após a entrevista...">${c.notes||''}</textarea>
+    <div class="btn-row">
+      <button class="btn primary" onclick="generateOpinion()"><i class="ti ti-sparkles"></i> Gerar parecer</button>
+      <button class="btn" onclick="saveField('notes')"><i class="ti ti-device-floppy"></i> Salvar anotações</button>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-title"><i class="ti ti-clipboard-check"></i> Parecer da entrevista</div>
+    <div id="opinionResult" class="ai-result${c.opinion ? '' : ' muted'}">${c.opinion || 'O parecer aparecerá aqui após gerar com IA.'}</div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="btn" onclick="setStatus('approved')" style="color:var(--text-success);border-color:var(--text-success)"><i class="ti ti-check"></i> Aprovado</button>
+      <button class="btn" onclick="setStatus('rejected')" style="color:var(--text-danger);border-color:var(--text-danger)"><i class="ti ti-x"></i> Reprovado</button>
+      <button class="btn" onclick="setStatus('pending')"><i class="ti ti-clock"></i> Em análise</button>
+    </div>
+  </div>
+  `;
+}
+
+function saveField(field) {
+  const c = getCandidate();
+  if (!c) return;
+  c[field] = document.getElementById(field === 'cv' ? 'cvInput' : 'notesInput').value;
+  saveState();
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check"></i> Salvo';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+async function analyzeCV() {
+  const c = getCandidate();
+  const p = getProject();
+  if (!c || !p) return;
+  const cv = document.getElementById('cvInput').value.trim();
+  if (!cv) return alert('Cole o CV do candidato antes de analisar.');
+  c.cv = cv;
+  const jd = p.jd || '';
+  const prompt = `Você é um headhunter experiente. Compare o CV com o Job Description e avalie a compatibilidade.\n\nJOB DESCRIPTION:\n${jd || '(não fornecido)'}\n\nCV:\n${cv}\n\nForneça:\nSCORE: [número de 0 a 100]\n\n1. Pontos fortes alinhados à vaga\n2. Lacunas ou pontos de atenção\n3. Recomendação: POTENCIAL CANDIDATO ou NÃO RECOMENDADO\n4. Justificativa em 3-4 linhas\n\nInicie SEMPRE com a linha "SCORE: [número]"`;
+  
+  const tmpEl = document.createElement('div');
+  tmpEl.style.marginTop = '12px';
+  document.getElementById('cvInput').closest('.section-card').appendChild(tmpEl);
+  
+  const text = await streamToEl(tmpEl, prompt, 900);
+  if (text) {
+    const m = text.match(/SCORE:\s*(\d+)/i);
+    if (m) c.matchScore = Math.min(100, parseInt(m[1]));
+    c.cvAnalysis = text;
+    saveState();
+    renderCandidateList();
+    renderCandidateDetail();
+  }
+}
+
+async function generateOpinion() {
+  const c = getCandidate();
+  const p = getProject();
+  if (!c || !p) return;
+  const notes = document.getElementById('notesInput').value.trim();
+  if (!notes) return alert('Adicione anotações da entrevista antes de gerar o parecer.');
+  c.notes = notes;
+  const el = document.getElementById('opinionResult');
+  el.className = 'ai-result muted';
+  el.textContent = 'Gerando parecer';
+  let d = 0;
+  const t = setInterval(() => { el.textContent = 'Gerando parecer' + '.'.repeat((++d%3)+1); }, 400);
+  const prompt = `Você é um consultor sênior de RH. Elabore um parecer formal e profissional sobre o candidato ${c.name} para a vaga descrita no Job Description.\n\nJOB DESCRIPTION:\n${p.jd||'(não fornecido)'}\n\nCURRÍCULO:\n${c.cv||'(não fornecido)'}\n\nANOTAÇÕES DA ENTREVISTA:\n${notes}\n\nGere um parecer no formato de relatório de RH com:\n1. Identificação do candidato e da vaga\n2. Resumo do perfil\n3. Avaliação técnica\n4. Avaliação comportamental e cultural\n5. Alinhamento com o Job Description\n6. Pontos de destaque\n7. Pontos de atenção ou riscos\n8. RECOMENDAÇÃO FINAL: APROVADO / EM ANÁLISE / REPROVADO\n9. Próximos passos sugeridos\n\nEscreva em português, de forma objetiva e profissional.`;
+  try {
+    const text = await claudeCall(prompt, 1400);
+    clearInterval(t);
+    el.className = 'ai-result';
+    el.textContent = text;
+    c.opinion = text;
+    saveState();
+  } catch(e) {
+    clearInterval(t);
+    el.textContent = 'Erro ao gerar parecer: ' + e.message;
+  }
+}
+
+function setStatus(status) {
+  const c = getCandidate();
+  if (!c) return;
+  c.status = status;
+  saveState();
+  renderCandidateList();
+  renderCandidateDetail();
+}
+
+// INIT
+loadState();
+</script>
+</body>
+</html>
